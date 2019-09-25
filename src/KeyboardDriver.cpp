@@ -13,10 +13,21 @@ KeyboardDriver::~KeyboardDriver() {}
 
 void KeyboardDriver::setKey(char key)
 {
+	keysBuffer[currentPtr&0xf]=0;
+	__disable_irq();
+	currentPtr++;
+	__enable_irq();
 
 }
 
 char KeyboardDriver::getKey()
 {
-	return 0;
+	char key;
+	if(currentPtr==0)return 0;
+	__disable_irq();
+	key=keysBuffer[(currentPtr-1)&0xf];
+	currentPtr--;
+	__enable_irq();
+
+	return key;
 }
