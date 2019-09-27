@@ -7,7 +7,7 @@
 #include <stm32f103xb.h>
 #include "Rtc.h"
 
-const char *daysOfWeek[]={"Su","Mo","Tu","We","Th","Fr","Sa"};
+const char *daysOfWeek[]={"OO","Su","Mo","Tu","We","Th","Fr","Sa"};
 
 Rtc::Rtc() {}
 Rtc::~Rtc() {}

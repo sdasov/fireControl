@@ -12,8 +12,9 @@ class KeyboardDriver {
 public:
 	KeyboardDriver();
 	~KeyboardDriver();
-	void setKey(char key);
+	void addKey(char key);
 	char getKey();
+	bool isKey();
 private:
 	char keysBuffer[16];
 	unsigned char currentPtr;

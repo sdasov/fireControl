@@ -5,19 +5,17 @@
  *      Author: sdaso
  */
 
+#include <stm32f103xb.h>
 #include "KeyboardDriver.h"
 
 KeyboardDriver::KeyboardDriver() {currentPtr=0;}
 
 KeyboardDriver::~KeyboardDriver() {}
 
-void KeyboardDriver::setKey(char key)
+void KeyboardDriver::addKey(char key)
 {
-	keysBuffer[currentPtr&0xf]=0;
-	__disable_irq();
-	currentPtr++;
-	__enable_irq();
-
+	keysBuffer[currentPtr]=key;
+	if(currentPtr<0xf)currentPtr++;
 }
 
 char KeyboardDriver::getKey()
@@ -25,9 +23,14 @@ char KeyboardDriver::getKey()
 	char key;
 	if(currentPtr==0)return 0;
 	__disable_irq();
-	key=keysBuffer[(currentPtr-1)&0xf];
 	currentPtr--;
+	key=keysBuffer[currentPtr];
 	__enable_irq();
 
 	return key;
+}
+
+bool KeyboardDriver::isKey()
+{
+	return currentPtr;
 }

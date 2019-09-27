@@ -18,10 +18,12 @@
 #include "perephConfig.h"
 #include "Rtc.h"
 #include "LedDisplay.h"
+#include "KeyboardDriver.h"
 
 unsigned char rccData[40];
-
 unsigned char keyboardCntr[4];
+
+KeyboardDriver keyboardDriver;
 
 extern "C" void SystemInit(void){for(int i=0;i<0xffff;i++)asm("NOP");}
 extern "C"  void TIM3_IRQHandler(void)
@@ -29,8 +31,10 @@ extern "C"  void TIM3_IRQHandler(void)
 
 	TIM3->SR &= ~TIM_SR_UIF;
 	unsigned int keyboardData=GPIOB->IDR;
-	GPIOC->ODR=GPIOC->ODR^GPIO_ODR_ODR13;
-
+	keyboardData=(keyboardData>>4)&0xf;
+	if(keyboardData!=0)keyboardDriver.addKey(keyboardData);
+	GPIOC->ODR=GPIOC->ODR^GPIO_ODR_ODR13; //blink
+/*
 	if((keyboardData&GPIO_IDR_IDR4)!=0)
 	{
 		if(keyboardCntr[0]<255)keyboardCntr[0]++;
@@ -50,6 +54,7 @@ extern "C"  void TIM3_IRQHandler(void)
 	{
 		if(keyboardCntr[3]<255)keyboardCntr[3]++;
 	}else keyboardCntr[3]=0;
+*/
 }
 void delay(int a)
 {
@@ -117,14 +122,8 @@ int main(void)
 //		led.printString(dateTimeString);
 
 		led.setCursor(0,1);
-		led.putChar(halfToChar(keyboardCntr[0]>>4));
-		led.putChar(halfToChar(keyboardCntr[0]&0xf));
-		led.putChar(halfToChar(keyboardCntr[1]>>4));
-		led.putChar(halfToChar(keyboardCntr[1]&0xf));
-		led.putChar(halfToChar(keyboardCntr[2]>>4));
-		led.putChar(halfToChar(keyboardCntr[2]&0xf));
-		led.putChar(halfToChar(keyboardCntr[3]>>4));
-		led.putChar(halfToChar(keyboardCntr[3]&0xf));
+		while(keyboardDriver.isKey())
+			led.putChar(halfToChar(keyboardDriver.getKey()));
 
 		delay(300000);
 	}
