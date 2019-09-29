@@ -50,7 +50,7 @@ void Rtc::readRTCData()
     for(i=0;i<6;i++)
     {
 		I2C2->CR1 |= I2C_CR1_ACK;
-		while (!(I2C2->SR1 & I2C_SR1_RXNE)){} // ожидаем окончания приема данных
+		while (!(I2C2->SR1 & I2C_SR1_RXNE)){} //
 		RTCdata[i]=I2C2->DR;
 		I2C2->CR1&=~I2C_CR1_ACK;
 		(void)I2C2->SR1;

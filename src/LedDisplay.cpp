@@ -87,8 +87,10 @@ void LedDisplay::initDisplay()
 
 void LedDisplay::writeDisplay(unsigned char byte, bool isData)
 {
-	DBUS &=(~DBUSMASK);
-	DBUS |=(byte&0xf0)<<8;
+	//DBUS &=(~DBUSMASK);
+	//DBUS |=(byte&0xf0)<<8;
+	DBUS=(DBUS&(~DBUSMASK))|((byte&0xf0)<<8);
+
 
 	if(isData)
 		GPIOA->BSRR=DRS1;
@@ -96,8 +98,9 @@ void LedDisplay::writeDisplay(unsigned char byte, bool isData)
 		GPIOA->BSRR=DRS0;
 	pulseE();
 
-	DBUS &=(~DBUSMASK);
-	DBUS |=(byte&0x0f)<<12;
+//	DBUS &=(~DBUSMASK);
+//	DBUS |=(byte&0x0f)<<12;
+	DBUS=(DBUS&(~DBUSMASK))|((byte&0x0f)<<12);
 
 	pulseE();
 	delayDisplay(40);
