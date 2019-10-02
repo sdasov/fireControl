@@ -18,7 +18,7 @@
 
 #define DSTERROR_NO_SENSOR 1
 
-#define DSTLASTCMD 13
+#define DSTLASTCMD 41
 
 class TemperatureReader {
 public:
@@ -26,12 +26,14 @@ public:
 	~TemperatureReader();
 	void timer4Interrupt();
 	signed char get8bitTemperature(unsigned char sensor);
+	signed short get16bitTemperature(unsigned char sensor);
 private:
 	static const unsigned int DSTBRPins[3];
 	static const unsigned int DSTBSPins[3];
 	static const unsigned int DSTIDRPins[3];
-	static const unsigned short DSTCommands[15];
+	static const unsigned short DSTCommands[43];
 	unsigned char DSTReadBuffer[6];
+	signed short frontReadBuffer[3];
 
 	unsigned char DSTCurrentCmdPtr;
 	unsigned char DSTLastCmdPtr;

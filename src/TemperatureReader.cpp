@@ -10,16 +10,17 @@
 const unsigned int TemperatureReader::DSTBRPins[3]={GPIO_BSRR_BR0,GPIO_BSRR_BR8,GPIO_BSRR_BR9};
 const unsigned int TemperatureReader::DSTBSPins[3]={GPIO_BSRR_BS0,GPIO_BSRR_BS8,GPIO_BSRR_BS9};
 const unsigned int TemperatureReader::DSTIDRPins[3]={GPIO_IDR_IDR0,GPIO_IDR_IDR8,GPIO_IDR_IDR9};
-const unsigned short TemperatureReader::DSTCommands[15]={
-		0x0000|DSTCMD_INIT,
-		0x0000|DSTCMD_WRITEBYTE,0xCC,
-		0x0000|DSTCMD_WRITEBYTE,0x44,
+const unsigned short TemperatureReader::DSTCommands[43]={
+		0x0000|DSTCMD_INIT,0x0100|DSTCMD_INIT,0x0200|DSTCMD_INIT,
+		0x0000|DSTCMD_WRITEBYTE,0xCC,0x0100|DSTCMD_WRITEBYTE,0xCC,0x0200|DSTCMD_WRITEBYTE,0xCC,
+		0x0000|DSTCMD_WRITEBYTE,0x44,0x0100|DSTCMD_WRITEBYTE,0x44,0x0200|DSTCMD_WRITEBYTE,0x44,
 		DSTCMD_WITECONVERSION,
-		0x0000|DSTCMD_INIT,
-		0x0000|DSTCMD_WRITEBYTE,0xCC,
-		0x0000|DSTCMD_WRITEBYTE,0xBE,
-		0x0000|DSTCMD_READBYTE,0x0,
-		0x0000|DSTCMD_READBYTE,0x1};
+		0x0000|DSTCMD_INIT,0x0100|DSTCMD_INIT,0x0200|DSTCMD_INIT,
+		0x0000|DSTCMD_WRITEBYTE,0xCC,0x0100|DSTCMD_WRITEBYTE,0xCC,0x0200|DSTCMD_WRITEBYTE,0xCC,
+		0x0000|DSTCMD_WRITEBYTE,0xBE,0x0100|DSTCMD_WRITEBYTE,0xBE,0x0200|DSTCMD_WRITEBYTE,0xBE,
+		0x0000|DSTCMD_READBYTE,0x0,0x0000|DSTCMD_READBYTE,0x1,
+		0x0100|DSTCMD_READBYTE,0x2,0x0100|DSTCMD_READBYTE,0x3,
+		0x0200|DSTCMD_READBYTE,0x4,0x0200|DSTCMD_READBYTE,0x5};
 
 
 TemperatureReader::TemperatureReader()
@@ -142,12 +143,18 @@ void TemperatureReader::DSTReadByte(unsigned char pinPtr)
 			else
 			{
 				DSTCommandStage=0;
-				DSTReadBuffer[DSTCommands[DSTCurrentCmdPtr+1]]=readedByte;
+				unsigned short addressToRead=DSTCommands[DSTCurrentCmdPtr+1];
+				DSTReadBuffer[addressToRead]=readedByte;
+				if((addressToRead&1)!=0)
+				{
+					frontReadBuffer[addressToRead>>1]=(DSTReadBuffer[addressToRead-1])|(readedByte<<8);
+				}
 			}
 			setTimer4(50);
 			break;
 	}
 }
+
 
 void TemperatureReader::timer4Interrupt()
 {
@@ -176,13 +183,19 @@ void TemperatureReader::timer4Interrupt()
 		}
 		else
 		if(DSTCurrentCmdPtr!=DSTLastCmdPtr)	DSTCurrentCmdPtr+=(command&0xf)+1;
-			else DSTCurrentCmdPtr=0;
+			else
+				DSTCurrentCmdPtr=0;
 	}
 }
 
 signed char TemperatureReader::get8bitTemperature(unsigned char sensor)
 {
-	signed char temperature=(DSTReadBuffer[sensor*2+1]<<4)|(DSTReadBuffer[sensor*2]>>4);
+	//signed char temperature=(frontReadBuffer[sensor*2+1]<<4)|(frontReadBuffer[sensor*2]>>4);
+	signed char temperature=frontReadBuffer[sensor]>>4;
 	return temperature;
 }
 
+signed short TemperatureReader::get16bitTemperature(unsigned char sensor)
+{
+	return frontReadBuffer[sensor];
+}
