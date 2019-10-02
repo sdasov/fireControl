@@ -15,6 +15,8 @@ private:
 	void writeRTCZero();
 	void readRTCData();
 	char halfToChar(char val);
+	void writeRTCData();
+	void writeRTC();
 
 	char RTCdata[7];
 
@@ -22,6 +24,7 @@ public:
 	Rtc();
 	~Rtc();
 	void getDateTimeString(char *buf);
+	void incMin();
 
 };
 

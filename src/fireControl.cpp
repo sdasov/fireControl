@@ -121,12 +121,12 @@ int main(void)
 		sprintf(outbuf,"%+-2d",temperatureReader.get8bitTemperature(2));
 		led.printString(outbuf);
 
-
+		if(keyboardDriver.getKey()!=0)mrtc.incMin();
 //		led.setCursor(0,1);
 //		while(keyboardDriver.isKey())
 //			led.putChar(halfToChar(keyboardDriver.getKey()));
 
-		delay(300000);
+		///delay(300000);
 	}
 }
 

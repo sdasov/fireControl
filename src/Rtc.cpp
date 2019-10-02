@@ -62,6 +62,41 @@ void Rtc::readRTCData()
     I2C2->CR1 |= I2C_CR1_STOP;
 }
 
+void Rtc::writeRTCData()
+{
+	unsigned char i;
+	I2C2->CR1 |= I2C_CR1_PE;
+    I2C2->CR1 |= I2C_CR1_START;
+
+    while (!(I2C2->SR1 & I2C_SR1_SB)){__NOP();}
+    (void)I2C2->SR1;
+    (void)I2C2->SR2;
+    // send device address
+    I2C2->DR = 0xd0;
+    while (!(I2C2->SR1 & I2C_SR1_ADDR)){/*__NOP();*/}
+    (void)I2C2->SR1;
+    (void)I2C2->SR2;
+    I2C2->DR=0;
+    while (!(I2C2->SR1 & I2C_SR1_BTF));
+    (void)I2C2->SR1;
+    (void)I2C2->SR2;
+
+    for(i=0;i<7;i++)
+    {
+    	I2C2->DR =RTCdata[i];
+        while (!(I2C2->SR1 & I2C_SR1_BTF));
+        (void)I2C2->SR1;
+        (void)I2C2->SR2;
+    }
+    I2C2->CR1 |= I2C_CR1_STOP;
+}
+
+void Rtc::writeRTC()
+{
+	//writeRTCZero();
+	writeRTCData();
+}
+
 void Rtc::readRTC()
 {
 	writeRTCZero();
@@ -102,4 +137,18 @@ void Rtc::getDateTimeString(char *buf)
 	buf[14]=halfToChar(RTCdata[1]>>4);
 	buf[15]=halfToChar(RTCdata[1]&0xf);
 	buf[16]=0;
+}
+
+void Rtc::incMin()
+{
+	readRTC();
+	char minutes=RTCdata[1];
+	minutes++;
+	if((minutes&0xf)>9)
+	{
+		minutes=(((minutes>>4)+1)<<4)|0;
+		if((minutes>>4)>5)minutes=0;
+	}
+	RTCdata[1]=minutes;
+	writeRTC();
 }
