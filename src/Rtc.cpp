@@ -91,64 +91,146 @@ void Rtc::writeRTCData()
     I2C2->CR1 |= I2C_CR1_STOP;
 }
 
-void Rtc::writeRTC()
-{
-	//writeRTCZero();
-	writeRTCData();
-}
-
 void Rtc::readRTC()
 {
 	writeRTCZero();
 	readRTCData();
 }
 //DFddmm20yy hh:mm0 - 17 bytes
-void Rtc::getDateTimeString(char *buf)
+void Rtc::getDateTimeString(char *buf, char *dateTime)
 {
-	readRTC();
-
 	//Day of week
-	buf[0]=daysOfWeek[RTCdata[3]&0xf][0];
-	buf[1]=daysOfWeek[RTCdata[3]&0xf][1];
+	buf[0]=daysOfWeek[dateTime[3]&0xf][0];
+	buf[1]=daysOfWeek[dateTime[3]&0xf][1];
 
 	//date
-	buf[2]=halfToChar(RTCdata[4]>>4);
-	buf[3]=halfToChar(RTCdata[4]&0xf);
+	buf[2]=halfToChar(dateTime[4]>>4);
+	buf[3]=halfToChar(dateTime[4]&0xf);
 
 	//month
-	buf[4]=halfToChar(RTCdata[5]>>4);
-	buf[5]=halfToChar(RTCdata[5]&0xf);
+	buf[4]=halfToChar(dateTime[5]>>4);
+	buf[5]=halfToChar(dateTime[5]&0xf);
 
 	//year
 	buf[6]='2';
 	buf[7]='0';
-	buf[8]=halfToChar(RTCdata[6]>>4);
-	buf[9]=halfToChar(RTCdata[6]&0xf);
+	buf[8]=halfToChar(dateTime[6]>>4);
+	buf[9]=halfToChar(dateTime[6]&0xf);
 
 	//space
 	buf[10]=' ';
 
 	//hours
-	buf[11]=halfToChar(RTCdata[2]>>4);
-	buf[12]=halfToChar(RTCdata[2]&0xf);
+	buf[11]=halfToChar(dateTime[2]>>4);
+	buf[12]=halfToChar(dateTime[2]&0xf);
 
 	buf[13]=':';
 	//minutes
-	buf[14]=halfToChar(RTCdata[1]>>4);
-	buf[15]=halfToChar(RTCdata[1]&0xf);
+	buf[14]=halfToChar(dateTime[1]>>4);
+	buf[15]=halfToChar(dateTime[1]&0xf);
 	buf[16]=0;
 }
 
-void Rtc::incMin()
+void Rtc::getDateString(char *buf, char *dateTime)
 {
-	readRTC();
-	char minutes=RTCdata[1];
-	minutes++;
-	if((minutes&0xf)>9)
+	//Day of week
+	buf[0]=daysOfWeek[dateTime[3]&0xf][0];buf[1]=daysOfWeek[dateTime[3]&0xf][1];
+	//date
+	buf[2]=halfToChar(dateTime[4]>>4);buf[3]=halfToChar(dateTime[4]&0xf);
+	//month
+	buf[4]=halfToChar(dateTime[5]>>4);buf[5]=halfToChar(dateTime[5]&0xf);
+	//year
+	buf[6]='2';	buf[7]='0';
+	buf[8]=halfToChar(dateTime[6]>>4);buf[9]=halfToChar(dateTime[6]&0xf);
+	buf[10]=0;
+}
+
+void Rtc::getTimeString(char *buf, char *dateTime)
+{
+	//hours
+	buf[0]=halfToChar(dateTime[2]>>4);buf[1]=halfToChar(dateTime[2]&0xf);
+	buf[2]=':';
+	//minutes
+	buf[3]=halfToChar(dateTime[1]>>4);buf[4]=halfToChar(dateTime[1]&0xf);
+	buf[5]=':';
+	//Seconds
+	buf[6]=halfToChar(dateTime[0]>>4);buf[7]=halfToChar(dateTime[0]&0xf);
+	buf[8]=0;
+}
+
+char *Rtc::getRawDateTime(){readRTC();return RTCdata;}
+
+void Rtc::setRawDateTime(char *rawDT)
+{
+	for(int i=0;i<7;i++)
 	{
-		minutes=(((minutes>>4)+1)<<4)|0;
-		if((minutes>>4)>5)minutes=0;
+		RTCdata[i]=rawDT[i];
 	}
-	RTCdata[1]=minutes;
-	writeRTC();
+	writeRTCData();
+}
+
+char Rtc::incbcd(char digit)
+{
+	digit++;
+	if((digit&0xf)>9)
+	{
+		digit=digit+0x10-0x0a;
+		if(digit>0x90)digit=0;
+	}
+	return digit;
+}
+
+char Rtc::decbcd(char digit)
+{
+	digit--;
+	if((digit&0xf)>9)
+	{
+		digit=digit-0x10-0x06;
+		if(digit>0x90)digit=0x99;
+	}
+	return digit;
+}
+
+void Rtc::incParam(char *dateTime, unsigned char paramNumber)
+{
+	char val=incbcd(dateTime[paramNumber]);
+	switch(paramNumber)
+	{
+		//seconds, minutes
+		case 0:
+		case 1: if(val>0x59)val=0;break;
+		//hours
+		case 2: if(val>0x23)val=0;break;
+		//days
+		case 3: if(val>0x07)val=1;break;
+		//date
+		case 4: if(val>0x31)val=1;break;
+		//months
+		case 5: if(val>0x12)val=1;break;
+		//years
+		case 6: break;
+	}
+	dateTime[paramNumber]=val;
+}
+
+void Rtc::decParam(char *dateTime, unsigned char paramNumber)
+{
+	char val=decbcd(dateTime[paramNumber]);
+	switch(paramNumber)
+	{
+		//seconds, minutes
+		case 0:
+		case 1: if(val>0x59)val=0x59;break;
+		//hours
+		case 2: if(val>0x23)val=0x23;break;
+		//days
+		case 3: if(val==0x0)val=7;break;
+		//date
+		case 4: if(val==0x0)val=0x31;break;
+		//months
+		case 5: if(val==0x0)val=0x12;break;
+		//years
+		case 6: break;
+	}
+	dateTime[paramNumber]=val;
 }

@@ -16,15 +16,23 @@ private:
 	void readRTCData();
 	char halfToChar(char val);
 	void writeRTCData();
-	void writeRTC();
+	char incbcd(char digit);
+	char decbcd(char digit);
+
 
 	char RTCdata[7];
 
 public:
 	Rtc();
 	~Rtc();
-	void getDateTimeString(char *buf);
-	void incMin();
+	void getDateTimeString(char *buf, char *dateTime);
+	void getDateString(char *buf, char *dateTime);
+	void getTimeString(char *buf, char *dateTime);
+	void incParam(char *dateTime, unsigned char paramNumber);
+	void decParam(char *dateTime, unsigned char paramNumber);
+
+	char *getRawDateTime();
+	void setRawDateTime(char *rawDT);
 
 };
 

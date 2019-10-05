@@ -21,6 +21,8 @@ public:
 	void setCursor(char Row, char Col);
 	void putChar(char byte);
 	void printString(char *buf);
+	void onBlinkCursor();
+	void offBlinkCursor();
 };
 
 #endif /* LEDDISPLAY_H_ */

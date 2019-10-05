@@ -8,6 +8,12 @@
 #ifndef KEYBOARDDRIVER_H_
 #define KEYBOARDDRIVER_H_
 
+#define KEY1 0x1
+#define KEY2 0x2
+#define KEY3 0x4
+#define KEY4 0x8
+
+
 class KeyboardDriver {
 public:
 	KeyboardDriver();

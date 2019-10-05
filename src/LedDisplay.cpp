@@ -131,3 +131,14 @@ void LedDisplay::printString(char *buf)
 	while(*buf!=0){putChar(*buf);buf++;}
 }
 
+void LedDisplay::onBlinkCursor()
+{
+	   writeDisplay(0x0f, false);
+}
+
+void LedDisplay::offBlinkCursor()
+{
+	   writeDisplay(0x0e, false);
+}
+
+
