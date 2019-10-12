@@ -12,6 +12,9 @@
 #include "LedDisplay.h"
 #include "KeyboardDriver.h"
 #include "TemperatureReader.h"
+#include "MainMenu.h"
+#include "SetParamsMenu.h"
+#include "SetDateTime.h"
 
 KeyboardDriver keyboardDriver;
 TemperatureReader temperatureReader;
@@ -92,6 +95,15 @@ int main(void)
 	TIM4->CR1=TIM_CR1_CEN;
 
 
+	MainMenu mainMenu(&led);
+	SetParamsMenu setParams;
+	SetDateTime setDataTime;
+	mainMenu.addMenuItem(&setParams);
+	mainMenu.addMenuItem(&setDataTime);
+
+	printDateTime(mrtc,led);
+
+
 	//stop otdacha
 	//TIM3->CR1&=~TIM_CR1_CEN;
 	char key;
@@ -111,6 +123,12 @@ int main(void)
 
 		key=keyboardDriver.getKey();
 		//if((key==KEY3)&&(isEditDateTimeMode==false)){isEditDateTimeMode=true;key=0;}
+		if(key!=0){
+			if((key==KEY3)&&(!mainMenu.isWork())){mainMenu.dispalayMenu();continue;}
+			if(mainMenu.isWork()){mainMenu.setKey(key);continue;}
+			led.setCursor(0,0);led.putChar('A');
+		}
+		continue;
 
 		switch(currentState)
 		{

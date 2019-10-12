@@ -7,12 +7,7 @@
 
 #include "MenuItem.h"
 
-MenuItem::MenuItem() {
-	// TODO Auto-generated constructor stub
+MenuItem::MenuItem() {parent=nullptr;prev=nullptr;next=nullptr;firstChild=nullptr;lastChild=nullptr;}
 
-}
-
-MenuItem::~MenuItem() {
-	// TODO Auto-generated destructor stub
-}
+MenuItem::~MenuItem() {}
 

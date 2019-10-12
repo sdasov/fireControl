@@ -13,12 +13,16 @@
 class MenuItem {
 public:
 	MenuItem();
-	~MenuItem();
-	char *getName();
+	virtual ~MenuItem();
+	virtual char *getName()=0;
 private:
 	MenuItem *parent;
-	std::vector<MenuItem*> children;
+	//std::vector<MenuItem*> children;
+	MenuItem *prev;
+	MenuItem *next;
 
+	MenuItem *firstChild;
+	MenuItem *lastChild;
 };
 
 #endif /* MENUITEM_H_ */
